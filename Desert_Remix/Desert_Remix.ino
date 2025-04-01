@@ -5,14 +5,13 @@
 #define LED_COUNT    138
 #define slowmo       3
 
-#define bottom       18 //   0 to  17
-#define vhemline     8  //  18 to  25;  69 to  76; 124 to 131
-#define hmidline     17 //  26 to  42;  52 to  68;  77 to  93
-#define diamond      9  //  43 to  51;  94 to 102;
-#define backtopline  7  // 103 to 109
-#define shoulder     8  // 110 to 117
-#define fronttopline 6  // 118 to 123
-#define collar       6  // 132 to 137
+// Total = 133
+// Collar           7  //  0 to   6
+// V Hemline        8  //  7 to  14;  60 to  67; 109 to 116
+// Line to Shoulder 6  // 15 to  20;  29 to  34;
+// Shoulder         8  // 21 to  28
+// Diamond          9  // 35 to  43;  84 to  92
+// H Line           16 // 44 to  59;  68 to  83;  93 to 108; 117 to 132
 
 
 Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_KHZ800 + NEO_GRB);
@@ -27,45 +26,45 @@ int numblocks = 6;
 float mew = LED_COUNT/numblocks;
 float sigma = 6;
 int th = 0;
-// int ishift = 0;
-// int i1shift = 0;
-// int i2shift = 0;
-// int i3shift = 0;
-// int i4shift = 0;
-// int i5shift = 0;
-// int i6shift = 0;
+int ishift = 0;
+int i1shift = 0;
+int i2shift = 0;
+int i3shift = 0;
+int i4shift = 0;
+int i5shift = 0;
+int i6shift = 0;
 void loop() {
   // RainbowCycleMirror(th,1.0,0.15,1,ishift,mew,sigma,numblocks);
-  // RainbowCycleTest(th,1.0,0.1,1,ishift,mew,sigma,t1,t2,t3,i1shift,i2shift,i3shift,i4shift,i5shift,i6shift);
-  PixelTesting(th,1.0,0.15,10);
-  // ishift = ishift + 1;
-  // if (ishift >= slowmo*LED_COUNT/6) {
-  //   ishift = 0;
-  // }
-  // i1shift = i1shift + 2;
-  // i2shift = i2shift + 5;
-  // i3shift = i3shift + 13;
-  // i4shift = i4shift + 8;
-  // i5shift = i5shift + 3;
-  // i6shift = i6shift + 1;
-  // if (i1shift-(-mew-4*sigma) >= LED_COUNT+8*sigma) {
-  //   i1shift = -mew-4*sigma;
-  // }
-  // if (i2shift-(5*sigma-mew-4*sigma) >= LED_COUNT+8*sigma) {
-  //   i2shift = 5*sigma-mew-4*sigma;
-  // }
-  // if (i3shift-(10*sigma-mew-4*sigma) >= LED_COUNT+8*sigma) {
-  //   i3shift = 10*sigma-mew-4*sigma;
-  // }
-  // if (i4shift-(-15*sigma-mew-4*sigma) >= LED_COUNT+8*sigma) {
-  //   i4shift = -15*sigma-mew-4*sigma;
-  // }
-  // if (i5shift-(-10*sigma-mew-4*sigma) >= LED_COUNT+8*sigma) {
-  //   i5shift = -10*sigma-mew-4*sigma;
-  // }
-  // if (i6shift-(-5*sigma-mew-4*sigma) >= LED_COUNT+8*sigma) {
-  //   i6shift = -5*sigma-mew-4*sigma;
-  // }
+  RainbowCycleTest(th,1.0,0.1,1,ishift,mew,sigma,i1shift,i2shift,i3shift,i4shift,i5shift,i6shift);
+  // PixelTesting(th,1.0,0.15,10);
+  ishift = ishift + 1;
+  if (ishift >= slowmo*LED_COUNT/6) {
+    ishift = 0;
+  }
+  i1shift = i1shift + 2;
+  i2shift = i2shift + 5;
+  i3shift = i3shift + 13;
+  i4shift = i4shift + 8;
+  i5shift = i5shift + 3;
+  i6shift = i6shift + 1;
+  if (i1shift-(-mew-4*sigma) >= LED_COUNT+8*sigma) {
+    i1shift = -mew-4*sigma;
+  }
+  if (i2shift-(5*sigma-mew-4*sigma) >= LED_COUNT+8*sigma) {
+    i2shift = 5*sigma-mew-4*sigma;
+  }
+  if (i3shift-(10*sigma-mew-4*sigma) >= LED_COUNT+8*sigma) {
+    i3shift = 10*sigma-mew-4*sigma;
+  }
+  if (i4shift-(-15*sigma-mew-4*sigma) >= LED_COUNT+8*sigma) {
+    i4shift = -15*sigma-mew-4*sigma;
+  }
+  if (i5shift-(-10*sigma-mew-4*sigma) >= LED_COUNT+8*sigma) {
+    i5shift = -10*sigma-mew-4*sigma;
+  }
+  if (i6shift-(-5*sigma-mew-4*sigma) >= LED_COUNT+8*sigma) {
+    i6shift = -5*sigma-mew-4*sigma;
+  }
   th = th - 2;
   if (th <= 0) {
     th = 360;
@@ -205,7 +204,7 @@ void RainbowCycleMirror(int H, float S, float LorV, int wait, int ishift, float 
   delay(wait);
 }
 
-void RainbowCycleTest(int H, float S, float LorV, int wait, int ishift, float mew, float sigma, int t1, int t2, int t3, int i1shift, int i2shift, int i3shift, int i4shift, int i5shift, int i6shift) {
+void RainbowCycleTest(int H, float S, float LorV, int wait, int ishift, float mew, float sigma, int i1shift, int i2shift, int i3shift, int i4shift, int i5shift, int i6shift) {
   static int rgb0[3];
   // HSLtoRGB(H,S,LorV,rgb);
   HSVtoRGB(H,S,LorV,rgb0);

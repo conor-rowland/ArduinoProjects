@@ -2,9 +2,9 @@
 // #include <Array.h>
 
 #define LED_PIN    4
-#define LED_COUNT  598
+#define LED_COUNT  138
 // #define numfiltgroups 17//68 // Needs to be even. 66 groups of 9 pixels padded by 2 groups of 2 pixels
-#define pi = 3.141592653
+#define slowmo     3
 
 Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_KHZ800 + NEO_GRB);
 
@@ -23,9 +23,9 @@ void setup() {
 
 // float pi = 3.141592653;
 // float mew = (LED_COUNT-1)/2;
-int numblocks = 7;
+int numblocks = 6;
 float mew = LED_COUNT/numblocks;
-float sigma = 15;
+float sigma = 6;
 int th = 0;
 int ishift = 0;
 int t1 = 0;
@@ -40,10 +40,13 @@ int i6shift = 0;
 // static float pixelfilt[numfiltgroups];
 void loop() {
   // RainbowCycle(th,1.0,0.2,1,ishift,mew,sigma); // Input -> Hue, Saturation, Lightness or Value, Delay Time
-  RainbowCycleMirror2(th,1.0,0.3,1,ishift,mew,sigma,numblocks);
+  RainbowCycleMirror2(th,1.0,0.15,1,ishift,mew,sigma,numblocks);
   // RainbowCycleTest(th,1.0,0.1,1,ishift,mew,sigma,t1,t2,t3,i1shift,i2shift,i3shift,i4shift,i5shift,i6shift);
   // SolidRainbowCycle(th,1.0,0.25,1);
-  ishift = ishift + 5;
+  ishift = ishift + 1;
+  if (ishift >= slowmo*LED_COUNT/6) {
+    ishift = 0;
+  }
   i1shift = i1shift + 2;
   i2shift = i2shift + 5;
   i3shift = i3shift + 13;
@@ -72,7 +75,7 @@ void loop() {
   // if (th >= 360) {
   //   th = 0;
   // }
-  th = th - 6;
+  th = th - 2;
   if (th <= 0) {
     th = 360;
   }
@@ -260,7 +263,8 @@ void RainbowCycleMirror2(int H, float S, float LorV, int wait, int ishift, float
   static int rgb3[3];
   static int rgb4[3];
   static int rgb5[3];
-  static int rgb6[3];
+  // static int rgb6[3];
+  // static int rgb7[3];
   
   int blockLEDs = int(LED_COUNT/numblocks);
   for(int i=0; i<blockLEDs; i++) {
@@ -270,11 +274,12 @@ void RainbowCycleMirror2(int H, float S, float LorV, int wait, int ishift, float
     HSVtoRGB((H+int(360.0/LED_COUNT*(3*blockLEDs+i)))%360,S,LorV,rgb3);
     HSVtoRGB((H+int(360.0/LED_COUNT*(4*blockLEDs+i)))%360,S,LorV,rgb4);
     HSVtoRGB((H+int(360.0/LED_COUNT*(5*blockLEDs+i)))%360,S,LorV,rgb5);
-    HSVtoRGB((H+int(360.0/LED_COUNT*(6*blockLEDs+i)))%360,S,LorV,rgb6);
+    // HSVtoRGB((H+int(360.0/LED_COUNT*(6*blockLEDs+i)))%360,S,LorV,rgb6);
+    // HSVtoRGB((H+int(360.0/LED_COUNT*(7*blockLEDs+i)))%360,S,LorV,rgb7);
     float pixelfilt = 0;
 
-    if ((i+ishift)%blockLEDs <= 3.5*sigma) {
-      pixelfilt = 0.96*exp(-abs((i+ishift)%blockLEDs)/(0.6*sigma)) + 0.04;
+    if ((i+ishift/slowmo)%blockLEDs <= 3.5*sigma) {
+      pixelfilt = 0.96*exp(-abs((i+ishift/slowmo)%blockLEDs)/(0.6*sigma)) + 0.04;
     }
     strip.setPixelColor(i, rgb0[0]*pixelfilt, rgb0[1]*pixelfilt, rgb0[2]*pixelfilt);
     strip.setPixelColor((1)*blockLEDs+i, rgb1[0]*pixelfilt, rgb1[1]*pixelfilt, rgb1[2]*pixelfilt);
@@ -282,7 +287,8 @@ void RainbowCycleMirror2(int H, float S, float LorV, int wait, int ishift, float
     strip.setPixelColor((3)*blockLEDs+i, rgb3[0]*pixelfilt, rgb3[1]*pixelfilt, rgb3[2]*pixelfilt);
     strip.setPixelColor((4)*blockLEDs+i, rgb4[0]*pixelfilt, rgb4[1]*pixelfilt, rgb4[2]*pixelfilt);
     strip.setPixelColor((5)*blockLEDs+i, rgb5[0]*pixelfilt, rgb5[1]*pixelfilt, rgb5[2]*pixelfilt);
-    strip.setPixelColor((6)*blockLEDs+i, rgb6[0]*pixelfilt, rgb6[1]*pixelfilt, rgb6[2]*pixelfilt);
+    // strip.setPixelColor((6)*blockLEDs+i, rgb6[0]*pixelfilt, rgb6[1]*pixelfilt, rgb6[2]*pixelfilt);
+    // strip.setPixelColor((7)*blockLEDs+i, rgb7[0]*pixelfilt, rgb7[1]*pixelfilt, rgb7[2]*pixelfilt);
   }
   strip.show();
   delay(wait);
