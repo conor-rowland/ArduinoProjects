@@ -21,151 +21,125 @@ Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_KHZ800 + NEO_GRB);
 void setup() {
   strip.begin();
   strip.clear();
+  // Serial.begin(9600);
 }
 
 // float pi = 3.141592653;
-int numblocks = 6;
-// float mew = LED_COUNT/numblocks;
-// float sigma = 6;
-int th = 0;
-// int ishift = 0;
+float P = 0;
+float et = 0.0;
 void loop() {
-  RainbowCycleSymmetric(th, 1.0, 0.1, 5);
-  // RainbowCycleOG(th, 1.0, 0.1, 5);
-  // RedCycleSymmetric(th, 1.0, 0.2, 5);
+  RainbowCycleSymmetric(P, 0.2, 17);
+  // RainbowCycleSymmetric_Comet(P, 0.2, et, 5);
+  // RainbowCycleRotate(P, 0.2, 25);
+  // RainbowCycleRotate_Comet(P, 0.2, et, 5);
+  // RainbowCycleOG(P, 0.2, 17);
+  // RainbowCycleOG_Comet(P, 0.2, et, 17);
 
-  // SolidRainbowCycle(th, 1.0, 0.1, 1);
-  // th = (th + 2)%360;
-  th = th-2;
-  if (th < 0) {
-    th = 360;
+  // RedCycleSymmetric(P, 0.35, 5);
+  // RedCycleSymmetric_Comet(P, 0.35, et, 5);
+  // RedCycleRotate(P, 0.35, 25);
+  // RedCycleRotate_Comet(P, 0.35, et, 5);
+
+  // SolidRainbowCycle(P, 0.2, 50);
+
+  P = P-1;
+  if (P < 0) {
+    P = 100;
+  }
+  // P = P+1;
+  // if (P > 99) {
+  //   P = 0;
+  // }
+
+  // et = et+0.011;
+  et = et+0.017;
+  if (et > 0.99) {
+    et = 0.0;
   }
 }
 
 //----------Define General Use Functions Below----------
 
-void HSLtoRGB(float H, float S, float L, int rgb[3]) {
-  // H = Hue and is given in degrees from 0 to 360
-  // S = Saturation and is given as a number between 0 and 1
-  // L = Lightness and is given as a number between 0 and 1
+void RainbowCycle(float P, float B, int rgb[3]) {
+  // P = Percent [percent through the color cycle]
+  // B = Brightness [LED brightness on a scale of 0 to 1]
 
-  float C = (1 - abs(2*L - 1)) * S;  // Chroma
-  float Hprime = H/60;
-  float X = C * (1 - abs(fmodf(Hprime,2) - 1));
-
-  float r1;
-  float g1;
-  float b1;
-  if (0<=Hprime & Hprime<=1) {
-    r1 = C;
-    g1 = X;
-    b1 = 0;
-  } else if (1<=Hprime & Hprime<=2) {
-    r1 = X;
-    g1 = C;
-    b1 = 0;
-  } else if (2<=Hprime & Hprime<=3) {
-    r1 = 0;
-    g1 = C;
-    b1 = X;
-  } else if (3<=Hprime & Hprime<=4) {
-    r1 = 0;
-    g1 = X;
-    b1 = C;
-  } else if (4<=Hprime & Hprime<=5) {
-    r1 = X;
-    g1 = 0;
-    b1 = C;
+  float Pregion = 100/6; // percent out of 100 that each local color change region takes
+  float Pprime = fmodf(P,Pregion)/Pregion; // amount through the local color change region on a scale of 0 to 1
+  float r;
+  float g;
+  float b;
+  if (0<=P & P<Pregion) {
+    r = 1.0;
+    g = Pprime;
+    b = 0.0;
+  } else if (Pregion<=P & P<2*Pregion) {
+    r = 1.0 - Pprime;
+    g = 1.0;
+    b = 0.0;
+  } else if (2*Pregion<=P & P<3*Pregion) {
+    r = 0.0;
+    g = 1.0;
+    b = Pprime;
+  } else if (3*Pregion<=P & P<4*Pregion) {
+    r = 0.0;
+    g = 1.0 - Pprime;
+    b = 1.0;
+  } else if (4*Pregion<=P & P<5*Pregion) {
+    r = Pprime;
+    g = 0.0;
+    b = 1.0;
+  } else if (5*Pregion<=P & P<6*Pregion) {
+    r = 1.0;
+    g = 0.0;
+    b = 1.0 - Pprime;
   } else {
-    r1 = C;
-    g1 = 0;
-    b1 = X;
+    r = 1.0;
+    g = 0.0;
+    b = 0.0;
   }
-  
-  float m = L - C/2;
-  
-  rgb[0] = 255 * (r1 + m);
-  rgb[1] = 255 * (g1 + m);
-  rgb[2] = 255 * (b1 + m);
-}
 
-void HSVtoRGB(float H, float S, float V, int rgb[3]) {
-  // H = Hue and is given in degrees from 0 to 360
-  // S = Saturation and is given as a number between 0 and 1
-  // V = Value and is given as a number between 0 and 1
-
-  float C = V * S;  // Chroma
-  float Hprime = H/60;
-  float X = C * (1 - abs(fmodf(Hprime,2) - 1));
-
-  float r1;
-  float g1;
-  float b1;
-  if (0<=Hprime & Hprime<=1) {
-    r1 = C;
-    g1 = X;
-    b1 = 0;
-  } else if (1<=Hprime & Hprime<=2) {
-    r1 = X;
-    g1 = C;
-    b1 = 0;
-  } else if (2<=Hprime & Hprime<=3) {
-    r1 = 0;
-    g1 = C;
-    b1 = X;
-  } else if (3<=Hprime & Hprime<=4) {
-    r1 = 0;
-    g1 = X;
-    b1 = C;
-  } else if (4<=Hprime & Hprime<=5) {
-    r1 = X;
-    g1 = 0;
-    b1 = C;
-  } else {
-    r1 = C;
-    g1 = 0;
-    b1 = X;
-  }
-  
-  float m = V - C;
-  
-  rgb[0] = 255 * (r1 + m);
-  rgb[1] = 255 * (g1 + m);
-  rgb[2] = 255 * (b1 + m);
+  rgb[0] = 255 * B * r;
+  rgb[1] = 255 * B * g;
+  rgb[2] = 255 * B * b;
 }
 
 void RedCycle(float P, float B, int rgb[3]) {
   // P = Percent [percent through the color cycle]
   // B = Brightness [LED brightness on a scale of 0 to 1]
 
-  float Pprime = fmodf(P,60)/60; // amount through the local color change region on a scale of 0 to 1
-
+  float Pregion = 100/6; // percent out of 100 that each local color change region takes
+  float Pprime = fmodf(P,Pregion)/Pregion; // amount through the local color change region on a scale of 0 to 1
   float r;
   float g;
   float b;
-  if (0<=P & P<60) {
+  if (0<=P & P<Pregion) {
     r = 1.0;
     g = 0.10 * Pprime;
     b = 0.0;
-  } else if (60<=P & P<120) {
+  } else if (Pregion<=P & P<2*Pregion) {
     r = 1.0;
     g = 0.10 + 0.4 * Pprime;
     b = 0.0;
-  } else if (120<=P & P<180) {
+  } else if (2*Pregion<=P & P<3*Pregion) {
     r = 1.0;
     g = 0.5 - 0.15 * Pprime;
     b = 0.0;
-  } else if (180<=P & P<240) {
+  } else if (3*Pregion<=P & P<4*Pregion) {
     r = 1.0;
     g = 0.35 - 0.35 * Pprime;
     b = Pprime;
-  } else if (240<=P & P<300) {
+  } else if (4*Pregion<=P & P<5*Pregion) {
     r = 1.0;
     g = 0.10 * Pprime;
     b = 1.0 - Pprime;
-  } else {
+  } else if (5*Pregion<=P & P<6*Pregion) {
     r = 1.0;
     g = 0.10 - 0.10 * Pprime;
+    b = 0.0;
+  } else { 
+    r = 1.0;
+    g = 0.0;
     b = 0.0;
   }
   
@@ -174,44 +148,46 @@ void RedCycle(float P, float B, int rgb[3]) {
   rgb[2] = 255 * B * b;
 }
 
+void CometEnvelope(float *intensity, float ep, float et) {
+  *intensity = pow(1 - fmodf(ep+et,1.0),2);
+}
+
 //----------Define Modes Below----------
 
-void RainbowCycleOG(int H, float S, float LorV, int wait) {
+void RainbowCycleOG(float P, float B, int wait) {
   static int rgb[3];
 
   // Spine 
   for(int i=22; i<36; i++) {
-    // HSVtoRGB(H,S,LorV,rgb);
-    HSVtoRGB((H+int(360.0/14*(i-22)))%360,S,LorV,rgb);
+    RainbowCycle(fmodf(P+100.0/14*(i-22),100),B,rgb);
     strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
-    // strip.setPixelColor(35-i, rgb[0], rgb[1], rgb[2]);
   }
 
   // Hem total per side = 75
   // Top hem
   for(int i=36; i<53; i++) {
-    HSVtoRGB((H+int(1.67*360.0/75*(i-36)))%360,S,LorV,rgb);
+    RainbowCycle(fmodf(P+1.67*100.0/75*(i-36),100),B,rgb);
     strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
     strip.setPixelColor(185-(i-36), rgb[0], rgb[1], rgb[2]);
   }
 
   // Side hem
   for(int i=53; i<85; i++) {
-    HSVtoRGB((H+int(1.67*360.0/75*(i-36)))%360,S,LorV,rgb);
+    RainbowCycle(fmodf(P+1.67*100.0/75*(i-36),100),B,rgb);
     strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
     strip.setPixelColor(168-(i-53), rgb[0], rgb[1], rgb[2]);
   }
 
   // Bottom hem
   for(int i=85; i<111; i++) {
-    HSVtoRGB((H+int(1.67*360.0/75*(i-36)))%360,S,LorV,rgb);
+    RainbowCycle(fmodf(P+1.67*100.0/75*(i-36),100),B,rgb);
     strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
     strip.setPixelColor(136-(i-85), rgb[0], rgb[1], rgb[2]);
   }
 
   // Outer diamond
   for(int i=189; i<216; i++) {
-    HSVtoRGB((H+int(360.0/14*10)%360+int(360.0/27*(i-189)))%360,S,LorV,rgb);
+    RainbowCycle(fmodf(P+fmodf(100.0/14*10,100)+100.0/27*(i-189),100),B,rgb);
     strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
     strip.setPixelColor(241-(i-189), rgb[0], rgb[1], rgb[2]);
   }
@@ -223,43 +199,103 @@ void RainbowCycleOG(int H, float S, float LorV, int wait) {
 }
 
 
-void RainbowCycleSymmetric(int H, float S, float LorV, int wait) {
+void RainbowCycleOG_Comet(float P, float B, float et, int wait) {
   static int rgb[3];
+  float intensity = 0.0; // modifier to the pixel brightness (0 to 1)
+
+  // Spine 
+  for(int i=22; i<36; i++) {
+    float ep = 0.42*(i+24-22.0)/(36.0-22.0);
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RainbowCycle(fmodf(P+100.0/14*(i-22),100),eB,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+  }
 
   // Hem total per side = 75
   // Top hem
   for(int i=36; i<53; i++) {
-    HSVtoRGB((H+int(2*360.0/75*(i-36)))%360,S,LorV,rgb);
+    float ep = fmodf((i+3-36.0),25)/25.0;
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RainbowCycle(fmodf(P+1.67*100.0/75*(i-36),100),eB,rgb);
     strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
     strip.setPixelColor(185-(i-36), rgb[0], rgb[1], rgb[2]);
   }
 
   // Side hem
   for(int i=53; i<85; i++) {
-    HSVtoRGB((H+int(2*360.0/75*(i-36)))%360,S,LorV,rgb);
+    float ep = fmodf(((i+3+17)-53.0),25)/25.0;
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RainbowCycle(fmodf(P+1.67*100.0/75*(i-36),100),eB,rgb);
     strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
     strip.setPixelColor(168-(i-53), rgb[0], rgb[1], rgb[2]);
   }
 
   // Bottom hem
   for(int i=85; i<111; i++) {
-    HSVtoRGB((H+int(2*360.0/75*(i-36)))%360,S,LorV,rgb);
+    float ep = fmodf(((i+3+24)-85.0),25)/25.0;
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RainbowCycle(fmodf(P+1.67*100.0/75*(i-36),100),eB,rgb);
     strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
     strip.setPixelColor(136-(i-85), rgb[0], rgb[1], rgb[2]);
   }
 
   // Outer diamond
   for(int i=189; i<216; i++) {
-    HSVtoRGB((H+int(360.0/27*(i-189)))%360,S,LorV,rgb);
+    float ep = (i-189.0)/(216.0-189.0);
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RainbowCycle(fmodf(P+fmodf(100.0/14*10,100)+100.0/27*(i-189),100),eB,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(241-(i-189), rgb[0], rgb[1], rgb[2]);
+  }
+  strip.setPixelColor(189, 0, 0, 0);
+  strip.setPixelColor(241, 0, 0, 0);
+
+  strip.show();
+  delay(wait);
+}
+
+
+void RainbowCycleSymmetric(float P, float B, int wait) {
+  static int rgb[3];
+
+  // Hem total per side = 75
+  // Top hem
+  for(int i=36; i<53; i++) {
+    RainbowCycle(fmodf(P+2.0*100.0/75*(i-36),100),B,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(185-(i-36), rgb[0], rgb[1], rgb[2]);
+  }
+
+  // Side hem
+  for(int i=53; i<85; i++) {
+    RainbowCycle(fmodf(P+2.0*100.0/75*(i-36),100),B,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(168-(i-53), rgb[0], rgb[1], rgb[2]);
+  }
+
+  // Bottom hem
+  for(int i=85; i<111; i++) {
+    RainbowCycle(fmodf(P+2.0*100.0/75*(i-36),100),B,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(136-(i-85), rgb[0], rgb[1], rgb[2]);
+  }
+
+  // Outer diamond
+  for(int i=189; i<216; i++) {
+    RainbowCycle(fmodf(P+100.0/27*(i-189),100),B,rgb);
     strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
     strip.setPixelColor(241-(i-189), rgb[0], rgb[1], rgb[2]);
   }
   strip.setPixelColor(241, 0, 0, 0);
 
   // Middle diamond
-  for(int i=243; i<263; i++) {
-    // HSVtoRGB((H+360-int(360.0/19*(i-243)))%360,S,LorV,rgb);
-    HSVtoRGB((H+int(360.0/19*(i-243)))%360,S,LorV,rgb);
+  for(int i=243; i<262; i++) {
+    RainbowCycle(fmodf(P+100.0/19*(i-243),100),B,rgb);
     strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
     strip.setPixelColor(279-(i-243), rgb[0], rgb[1], rgb[2]);
   }
@@ -267,7 +303,7 @@ void RainbowCycleSymmetric(int H, float S, float LorV, int wait) {
 
   // Inner diamond
   for(int i=281; i<292; i++) {
-    HSVtoRGB((H+int(360.0/11*(i-281)))%360,S,LorV,rgb);
+    RainbowCycle(fmodf(P+100.0/11*(i-281),100),B,rgb);
     strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
     strip.setPixelColor(301-(i-281), rgb[0], rgb[1], rgb[2]);
   }
@@ -278,42 +314,58 @@ void RainbowCycleSymmetric(int H, float S, float LorV, int wait) {
 }
 
 
-void RedCycleSymmetric(int H, float S, float LorV, int wait) {
+void RainbowCycleSymmetric_Comet(float P, float B, float et, int wait) {
   static int rgb[3];
+  float intensity = 0.0; // modifier to the pixel brightness (0 to 1)
 
   // Hem total per side = 75
   // Top hem
   for(int i=36; i<53; i++) {
-    RedCycle((H+int(2*360.0/75*(i-36)))%360,LorV,rgb);
+    float ep = fmodf((i-36.0),25)/25.0;
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RainbowCycle(fmodf(P+2.0*100.0/75*(i-36),100),eB,rgb);
     strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
     strip.setPixelColor(185-(i-36), rgb[0], rgb[1], rgb[2]);
   }
 
   // Side hem
   for(int i=53; i<85; i++) {
-    RedCycle((H+int(2*360.0/75*(i-36)))%360,LorV,rgb);
+    float ep = fmodf(((i+17)-53.0),25)/25.0;
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RainbowCycle(fmodf(P+2.0*100.0/75*(i-36),100),eB,rgb);
     strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
     strip.setPixelColor(168-(i-53), rgb[0], rgb[1], rgb[2]);
   }
 
   // Bottom hem
   for(int i=85; i<111; i++) {
-    RedCycle((H+int(2*360.0/75*(i-36)))%360,LorV,rgb);
+    float ep = fmodf(((i+24)-85.0),25)/25.0;
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RainbowCycle(fmodf(P+2.0*100.0/75*(i-36),100),eB,rgb);
     strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
     strip.setPixelColor(136-(i-85), rgb[0], rgb[1], rgb[2]);
   }
 
   // Outer diamond
   for(int i=189; i<216; i++) {
-    RedCycle((H+int(360.0/27*(i-189)))%360,LorV,rgb);
+    float ep = (i-189.0)/(216.0-189.0);
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RainbowCycle(fmodf(P+100.0/27*(i-189),100),eB,rgb);
     strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
     strip.setPixelColor(241-(i-189), rgb[0], rgb[1], rgb[2]);
   }
   strip.setPixelColor(241, 0, 0, 0);
 
   // Middle diamond
-  for(int i=243; i<263; i++) {
-    RedCycle((H+int(360.0/19*(i-243)))%360,LorV,rgb);
+  for(int i=243; i<262; i++) {
+    float ep = (i-243.0)/(262.0-243.0);
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RainbowCycle(fmodf(P+100.0/19*(i-243),100),eB,rgb);
     strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
     strip.setPixelColor(279-(i-243), rgb[0], rgb[1], rgb[2]);
   }
@@ -321,7 +373,10 @@ void RedCycleSymmetric(int H, float S, float LorV, int wait) {
 
   // Inner diamond
   for(int i=281; i<292; i++) {
-    RedCycle((H+int(360.0/11*(i-281)))%360,LorV,rgb);
+    float ep = (i-281.0)/(292.0-281.0);
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RainbowCycle(fmodf(P+100.0/11*(i-281),100),eB,rgb);
     strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
     strip.setPixelColor(301-(i-281), rgb[0], rgb[1], rgb[2]);
   }
@@ -332,18 +387,414 @@ void RedCycleSymmetric(int H, float S, float LorV, int wait) {
 }
 
 
-void SolidRainbowCycle(int H, float S, float LorV, int wait) {
+void RedCycleSymmetric(float P, float B, int wait) {
   static int rgb[3];
-  HSVtoRGB(H,S,LorV,rgb);
+
+  // Hem total per side = 75
+  // Top hem
+  for(int i=36; i<53; i++) {
+    RedCycle(fmodf(P+2*100.0/75*(i-36),100),B,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(185-(i-36), rgb[0], rgb[1], rgb[2]);
+  }
+
+  // Side hem
+  for(int i=53; i<85; i++) {
+    RedCycle(fmodf(P+2*100.0/75*(i-36),100),B,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(168-(i-53), rgb[0], rgb[1], rgb[2]);
+  }
+
+  // Bottom hem
+  for(int i=85; i<111; i++) {
+    RedCycle(fmodf(P+2*100.0/75*(i-36),100),B,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(136-(i-85), rgb[0], rgb[1], rgb[2]);
+  }
+
+  // Outer diamond
+  for(int i=189; i<216; i++) {
+    RedCycle(fmodf(P+100.0/27*(i-189),100),B,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(241-(i-189), rgb[0], rgb[1], rgb[2]);
+  }
+  strip.setPixelColor(241, 0, 0, 0);
+
+  // Middle diamond
+  for(int i=243; i<262; i++) {
+    RedCycle(fmodf(P+100.0/19*(i-243),100),B,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(279-(i-243), rgb[0], rgb[1], rgb[2]);
+  }
+  strip.setPixelColor(279, 0, 0, 0);
+
+  // Inner diamond
+  for(int i=281; i<292; i++) {
+    RedCycle(fmodf(P+100.0/11*(i-281),100),B,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(301-(i-281), rgb[0], rgb[1], rgb[2]);
+  }
+  strip.setPixelColor(301, 0, 0, 0);
+
+  strip.show();
+  delay(wait);
+}
+
+
+void RedCycleSymmetric_Comet(float P, float B, float et, int wait) {
+  static int rgb[3];
+  float intensity = 0.0; // modifier to the pixel brightness (0 to 1)
+  // Serial.print(et);
+  // Serial.print("\n");
+
+  // Hem total per side = 75
+  // Top hem
+  for(int i=36; i<53; i++) {
+    // float ep = fmodf((i-36.0),15)/15.0;
+    float ep = fmodf((i-36.0),25)/25.0;
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RedCycle(fmodf(P+2*100.0/75*(i-36),100),eB,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(185-(i-36), rgb[0], rgb[1], rgb[2]);
+  }
+
+  // Side hem
+  for(int i=53; i<85; i++) {
+    // float ep = fmodf(((i+2)-53.0),15)/15.0;
+    float ep = fmodf(((i+17)-53.0),25)/25.0;
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RedCycle(fmodf(P+2*100.0/75*(i-36),100),eB,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(168-(i-53), rgb[0], rgb[1], rgb[2]);
+  }
+
+  // Bottom hem
+  for(int i=85; i<111; i++) {
+    // float ep = fmodf(((i+4)-85.0),15)/15.0;
+    float ep = fmodf(((i+24)-85.0),25)/25.0;
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RedCycle(fmodf(P+2*100.0/75*(i-36),100),eB,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(136-(i-85), rgb[0], rgb[1], rgb[2]);
+  }
+
+  // Outer diamond
+  for(int i=189; i<216; i++) {
+    float ep = (i-189.0)/(216.0-189.0);
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RedCycle(fmodf(P+100.0/27*(i-189),100),eB,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(241-(i-189), rgb[0], rgb[1], rgb[2]);
+  }
+  strip.setPixelColor(241, 0, 0, 0);
+
+  // Middle diamond
+  for(int i=243; i<262; i++) {
+    float ep = (i-243.0)/(262.0-243.0);
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RedCycle(fmodf(P+100.0/19*(i-243),100),eB,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(279-(i-243), rgb[0], rgb[1], rgb[2]);
+  }
+  strip.setPixelColor(279, 0, 0, 0);
+
+  // Inner diamond
+  for(int i=281; i<292; i++) {
+    float ep = (i-281.0)/(292.0-281.0);
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RedCycle(fmodf(P+100.0/11*(i-281),100),eB,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(301-(i-281), rgb[0], rgb[1], rgb[2]);
+  }
+  strip.setPixelColor(301, 0, 0, 0);
+
+  strip.show();
+  delay(wait);
+}
+
+
+void RainbowCycleRotate(float P, float B, int wait) {
+  static int rgb[3];
+  float intensity = 0.0; // modifier to the pixel brightness (0 to 1)
+
+  // Hem total per side = 75
+  // Top hem (left) & Bottom hem (right) [36-52 & 111-127]
+  for(int i=36; i<53; i++) {
+    RainbowCycle(fmodf(P+3*100.0/75*(i-36),100),B,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(111+(i-36), rgb[0], rgb[1], rgb[2]);
+  }
+
+  // Side hem (left) & Bottom/Side hem (right) [53-84 & 128-159]
+  for(int i=53; i<85; i++) {
+    RainbowCycle(fmodf(P+3*100.0/75*(i-36),100),B,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(128+(i-53), rgb[0], rgb[1], rgb[2]);
+  }
+
+  // Bottom hem (left) & Side/Top hem (right) [85-110 & 160-185]
+  for(int i=85; i<111; i++) {
+    RainbowCycle(fmodf(P+3*100.0/75*(i-36),100),B,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(160+(i-85), rgb[0], rgb[1], rgb[2]);
+  }
+
+  // Outer diamond
+  for(int i=189; i<241; i++) {
+    RainbowCycle(fmodf(P+2*100.0/52*(i-189),100),B,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+  }
+  strip.setPixelColor(241, 0, 0, 0);
+
+  // Middle diamond
+  for(int i=243; i<279; i++) {
+    RainbowCycle(fmodf(P+2*100.0/36*(i-243),100),B,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+  }
+  strip.setPixelColor(279, 0, 0, 0);
+
+  // Inner diamond
+  for(int i=281; i<301; i++) {
+    RainbowCycle(fmodf(P+2*100.0/20*(i-281),100),B,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+  }
+  strip.setPixelColor(301, 0, 0, 0);
+
+  // Center dot
+  strip.setPixelColor(22, int(255*B), 0, 0);
+
+  strip.show();
+  delay(wait);
+}
+
+
+void RainbowCycleRotate_Comet(float P, float B, float et, int wait) {
+  static int rgb[3];
+  float intensity = 0.0; // modifier to the pixel brightness (0 to 1)
+
+  // Hem total per side = 75
+  // Top hem (left) & Bottom hem (right) [36-52 & 111-127]
+  for(int i=36; i<53; i++) {
+    // float ep = fmodf((i-36.0),15)/15.0;
+    float ep = fmodf((i-36.0),25)/25.0;
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RainbowCycle(fmodf(P+3*100.0/75*(i-36),100),eB,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(111+(i-36), rgb[0], rgb[1], rgb[2]);
+  }
+
+  // Side hem (left) & Bottom/Side hem (right) [53-84 & 128-159]
+  for(int i=53; i<85; i++) {
+    // float ep = fmodf(((i+2)-53.0),15)/15.0;
+    float ep = fmodf(((i+17)-53.0),25)/25.0;
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RainbowCycle(fmodf(P+3*100.0/75*(i-36),100),eB,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(128+(i-53), rgb[0], rgb[1], rgb[2]);
+  }
+
+  // Bottom hem (left) & Side/Top hem (right) [85-110 & 160-185]
+  for(int i=85; i<111; i++) {
+    // float ep = fmodf(((i+4)-85.0),15)/15.0;
+    float ep = fmodf(((i+24)-85.0),25)/25.0;
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RainbowCycle(fmodf(P+3*100.0/75*(i-36),100),eB,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(160+(i-85), rgb[0], rgb[1], rgb[2]);
+  }
+
+  // Outer diamond
+  for(int i=189; i<241; i++) {
+    float ep = 2*(i-189.0)/(241.0-189.0);
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RainbowCycle(fmodf(P+2*100.0/52*(i-189),100),eB,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+  }
+  strip.setPixelColor(241, 0, 0, 0);
+
+  // Middle diamond
+  for(int i=243; i<279; i++) {
+    float ep = 2*(i-243.0)/(279.0-243.0);
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RainbowCycle(fmodf(P+2*100.0/36*(i-243),100),eB,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+  }
+  strip.setPixelColor(279, 0, 0, 0);
+
+  // Inner diamond
+  for(int i=281; i<301; i++) {
+    float ep = 2*(i-281.0)/(301.0-281.0);
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RainbowCycle(fmodf(P+2*100.0/20*(i-281),100),eB,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+  }
+  strip.setPixelColor(301, 0, 0, 0);
+
+  // Center dot
+  RainbowCycle(fmodf(P+100*(1-et),100),B,rgb);
+  strip.setPixelColor(22, rgb[0], rgb[1], rgb[2]);
+
+  strip.show();
+  delay(wait);
+}
+
+
+void RedCycleRotate(float P, float B, int wait) {
+  static int rgb[3];
+  float intensity = 0.0; // modifier to the pixel brightness (0 to 1)
+
+  // Hem total per side = 75
+  // Top hem (left) & Bottom hem (right) [36-52 & 111-127]
+  for(int i=36; i<53; i++) {
+    RedCycle(fmodf(P+3*100.0/75*(i-36),100),B,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(111+(i-36), rgb[0], rgb[1], rgb[2]);
+  }
+
+  // Side hem (left) & Bottom/Side hem (right) [53-84 & 128-159]
+  for(int i=53; i<85; i++) {
+    RedCycle(fmodf(P+3*100.0/75*(i-36),100),B,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(128+(i-53), rgb[0], rgb[1], rgb[2]);
+  }
+
+  // Bottom hem (left) & Side/Top hem (right) [85-110 & 160-185]
+  for(int i=85; i<111; i++) {
+    RedCycle(fmodf(P+3*100.0/75*(i-36),100),B,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(160+(i-85), rgb[0], rgb[1], rgb[2]);
+  }
+
+  // Outer diamond
+  for(int i=189; i<241; i++) {
+    RedCycle(fmodf(P+2*100.0/52*(i-189),100),B,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+  }
+  strip.setPixelColor(241, 0, 0, 0);
+
+  // Middle diamond
+  for(int i=243; i<279; i++) {
+    RedCycle(fmodf(P+2*100.0/36*(i-243),100),B,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+  }
+  strip.setPixelColor(279, 0, 0, 0);
+
+  // Inner diamond
+  for(int i=281; i<301; i++) {
+    RedCycle(fmodf(P+2*100.0/20*(i-281),100),B,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+  }
+  strip.setPixelColor(301, 0, 0, 0);
+
+  // Center dot
+  strip.setPixelColor(22, int(255*B), 0, 0);
+
+  strip.show();
+  delay(wait);
+}
+
+
+void RedCycleRotate_Comet(float P, float B, float et, int wait) {
+  static int rgb[3];
+  float intensity = 0.0; // modifier to the pixel brightness (0 to 1)
+
+  // Hem total per side = 75
+  // Top hem (left) & Bottom hem (right) [36-52 & 111-127]
+  for(int i=36; i<53; i++) {
+    // float ep = fmodf((i-36.0),15)/15.0;
+    float ep = fmodf((i-36.0),25)/25.0;
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RedCycle(fmodf(P+3*100.0/75*(i-36),100),eB,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(111+(i-36), rgb[0], rgb[1], rgb[2]);
+  }
+
+  // Side hem (left) & Bottom/Side hem (right) [53-84 & 128-159]
+  for(int i=53; i<85; i++) {
+    // float ep = fmodf(((i+2)-53.0),15)/15.0;
+    float ep = fmodf(((i+17)-53.0),25)/25.0;
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RedCycle(fmodf(P+3*100.0/75*(i-36),100),eB,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(128+(i-53), rgb[0], rgb[1], rgb[2]);
+  }
+
+  // Bottom hem (left) & Side/Top hem (right) [85-110 & 160-185]
+  for(int i=85; i<111; i++) {
+    // float ep = fmodf(((i+4)-85.0),15)/15.0;
+    float ep = fmodf(((i+24)-85.0),25)/25.0;
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RedCycle(fmodf(P+3*100.0/75*(i-36),100),eB,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(160+(i-85), rgb[0], rgb[1], rgb[2]);
+  }
+
+  // Outer diamond
+  for(int i=189; i<241; i++) {
+    float ep = 2*(i-189.0)/(241.0-189.0);
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RedCycle(fmodf(P+2*100.0/52*(i-189),100),eB,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+  }
+  strip.setPixelColor(241, 0, 0, 0);
+
+  // Middle diamond
+  for(int i=243; i<279; i++) {
+    float ep = 2*(i-243.0)/(279.0-243.0);
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RedCycle(fmodf(P+2*100.0/36*(i-243),100),eB,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+  }
+  strip.setPixelColor(279, 0, 0, 0);
+
+  // Inner diamond
+  for(int i=281; i<301; i++) {
+    float ep = 2*(i-281.0)/(301.0-281.0);
+    CometEnvelope(&intensity,ep,et);
+    float eB = B*intensity;
+    RedCycle(fmodf(P+2*100.0/20*(i-281),100),eB,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+  }
+  strip.setPixelColor(301, 0, 0, 0);
+
+  // Center dot
+  RedCycle(fmodf(P+100*(1-et),100),B,rgb);
+  strip.setPixelColor(22, rgb[0], rgb[1], rgb[2]);
+
+  strip.show();
+  delay(wait);
+}
+
+
+void SolidRainbowCycle(float P, float B, int wait) {
+  static int rgb[3];
+  RainbowCycle(P,B,rgb);
 
   // Spine (bottom half)
-  // for(int i=0; i<22; i++) {
-  //   strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
-  // }
+  for(int i=0; i<22; i++) {
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+  }
   // Spine (top half)
-  // for(int i=22; i<36; i++) {
-  //   strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
-  // }
+  for(int i=22; i<36; i++) {
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+  }
   // Top hem (left side)
   for(int i=36; i<53; i++) {
     strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
