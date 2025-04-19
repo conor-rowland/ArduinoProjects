@@ -1,5 +1,6 @@
 #include <Adafruit_NeoPixel.h>
-// #include <Array.h>
+#include <stdlib.h>
+#include <time.h>
 
 #define LED_PIN      4
 #define LED_COUNT    133//138
@@ -18,33 +19,53 @@ void setup() {
   strip.begin();
   strip.clear();
   // Serial.begin(9600);
+  srand(time(NULL));
 }
 
-// float pi = 3.141592653;
+// float pi = 3.141592653;]
+int randP = 0;
+int randt = 0;
 float P = 0;
 float et = 0.0;
 void loop() {
   // RainbowCycleSymmetric(P, 0.2, 17);
-  // RainbowCycleSymmetric_Comet(P, 0.2, et, 5);
+  RainbowCycleSymmetric_Comet(P, 0.2, et, 5);
 
   // RedCycleSymmetric(P, 0.1, 5);
-  RedCycleSymmetric_Comet(P, 0.1, et, 5);
+  // RedCycleSymmetric_Comet(P, 0.1, et, 5);
 
   // SolidRainbowCycle(P, 0.2, 50);
 
-  P = P-1;
+  randt = randt + ((rand() % 11)-5);
+  if (randt > 100) {
+    randt = 100;
+  } else if (randt < 0) {
+    randt = 0;
+  }
+  randP = randP + ((rand() % 41)-20);
+  if (randP > 100) {
+    randP = 100;
+  } else if (randP < -100) {
+    randP = -100;
+  }
+
+  P = P-1*(0.1+randP/100.0);
   if (P < 0) {
     P = 100;
+  } else if (P > 100) {
+    P = 0;
   }
   // P = P+1;
   // if (P > 99) {
   //   P = 0;
   // }
 
-  // et = et+0.011;
-  et = et+0.007;
-  if (et > 0.99) {
+  // et = et+0.014;
+  et = et+0.007*(0.7+randt/100.0);
+  if (et > 0.99999999) {
     et = 0.0;
+  } else if (et < 0.00000001) {
+    et = 1.0;
   }
 }
 
@@ -162,7 +183,7 @@ void RainbowCycleSymmetric_Comet(float P, float B, float et, int wait) {
   float intensity = 0.0; // modifier to the pixel brightness (0 to 1)
 
   for(int i=0; i<LED_COUNT; i++) {
-    float ep = fmodf(i,LED_COUNT/10)/(LED_COUNT/10);
+    float ep = fmodf(i,LED_COUNT/6.6)/(LED_COUNT/6.6);
     CometEnvelope(&intensity,ep,2*et);
     float eB = B*intensity;
     RainbowCycle(fmodf(P+100.0/LED_COUNT*i,100),eB,rgb);
@@ -190,7 +211,7 @@ void RedCycleSymmetric_Comet(float P, float B, float et, int wait) {
   float intensity = 0.0; // modifier to the pixel brightness (0 to 1)
 
   for(int i=0; i<LED_COUNT; i++) {
-    float ep = fmodf(i,LED_COUNT/2.5)/(LED_COUNT/2.5);
+    float ep = fmodf(i,LED_COUNT/3.3)/(LED_COUNT/3.3);
     CometEnvelope(&intensity,ep,et);
     float eB = B*intensity;
     RedCycle(fmodf(P+100.0/LED_COUNT*i,100),eB,rgb);
