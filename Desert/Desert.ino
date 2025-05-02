@@ -1,5 +1,6 @@
 #include <Adafruit_NeoPixel.h>
-// #include <Array.h>
+#include <stdlib.h>
+#include <time.h>
 
 #define LED_PIN    4
 #define LED_COUNT  306
@@ -22,18 +23,24 @@ void setup() {
   strip.begin();
   strip.clear();
   // Serial.begin(9600);
+  srand(time(NULL));
 }
 
 // float pi = 3.141592653;
+int randP = 0;
+int randt = 0;
 float P = 0;
+float P2 = 0;
 float et = 0.0;
 void loop() {
-  RainbowCycleSymmetric(P, 0.2, 17);
-  // RainbowCycleSymmetric_Comet(P, 0.2, et, 5);
+  // RainbowCycleSymmetric(P, 0.2, 17);
+  RainbowCycleSymmetric_Comet(P, 0.2, et, 5);
   // RainbowCycleRotate(P, 0.2, 25);
   // RainbowCycleRotate_Comet(P, 0.2, et, 5);
   // RainbowCycleOG(P, 0.2, 17);
   // RainbowCycleOG_Comet(P, 0.2, et, 17);
+
+  // DoubleRainbowSymmetric(P, P2, 0.125, 17);
 
   // RedCycleSymmetric(P, 0.35, 5);
   // RedCycleSymmetric_Comet(P, 0.35, et, 5);
@@ -42,19 +49,44 @@ void loop() {
 
   // SolidRainbowCycle(P, 0.2, 50);
 
-  P = P-1;
+  randt = randt + ((rand() % 21)-10);
+  if (randt > 100) {
+    randt = 100;
+  } else if (randt < 0) {
+    randt = 0;
+  }
+  randP = randP + ((rand() % 41)-20);
+  if (randP > 100) {
+    randP = 100;
+  } else if (randP < -100) {
+    randP = -100;
+  }
+
+  P = P-1*(0.3+1.0*randP/100.0);
+  // P = P-1*(0.0+1.5*randP/100.0);
   if (P < 0) {
     P = 100;
+  } else if (P > 100) {
+    P = 0;
   }
   // P = P+1;
   // if (P > 99) {
   //   P = 0;
   // }
+  // P2 = P2+1*(1.75+2.5*randP/100.0);
+  // // P = P-1*(0.0+1.5*randP/100.0);
+  // if (P2 < 0) {
+  //   P2 = 100;
+  // } else if (P2 > 100) {
+  //   P2 = 0;
+  // }
 
-  // et = et+0.011;
-  et = et+0.017;
-  if (et > 0.99) {
+  et = et+0.007*(1.0+1.5*randt/100.0);
+  // et = et+0.007*(1.0+2.0*randt/100.0);
+  if (et > 0.99999999) {
     et = 0.0;
+  } else if (et < 0.00000001) {
+    et = 1.0;
   }
 }
 
@@ -306,6 +338,67 @@ void RainbowCycleSymmetric(float P, float B, int wait) {
     RainbowCycle(fmodf(P+100.0/11*(i-281),100),B,rgb);
     strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
     strip.setPixelColor(301-(i-281), rgb[0], rgb[1], rgb[2]);
+  }
+  strip.setPixelColor(301, 0, 0, 0);
+
+  strip.show();
+  delay(wait);
+}
+
+
+void DoubleRainbowSymmetric(float P, float P2, float B, int wait) {
+  static int rgb[3];
+  static int rgb2[3];
+
+  // Hem total per side = 75
+  // Top hem
+  for(int i=36; i<53; i++) {
+    RainbowCycle(fmodf(P+2.0*100.0/75*(i-36),100),B,rgb);
+    RainbowCycle(fmodf(P2+4.55*100.0/75*(i+16.5-36),100),B,rgb2);
+    strip.setPixelColor(i, rgb[0]+rgb2[0], rgb[1]+rgb2[1], rgb[2]+rgb2[2]);
+    strip.setPixelColor(185-(i-36), rgb[0]+rgb2[0], rgb[1]+rgb2[1], rgb[2]+rgb2[2]);
+  }
+
+  // Side hem
+  for(int i=53; i<85; i++) {
+    RainbowCycle(fmodf(P+2.0*100.0/75*(i-36),100),B,rgb);
+    RainbowCycle(fmodf(P2+4.55*100.0/75*(i+16.5-36),100),B,rgb2);
+    strip.setPixelColor(i, rgb[0]+rgb2[0], rgb[1]+rgb2[1], rgb[2]+rgb2[2]);
+    strip.setPixelColor(168-(i-53), rgb[0]+rgb2[0], rgb[1]+rgb2[1], rgb[2]+rgb2[2]);
+  }
+
+  // Bottom hem
+  for(int i=85; i<111; i++) {
+    RainbowCycle(fmodf(P+2.0*100.0/75*(i-36),100),B,rgb);
+    RainbowCycle(fmodf(P2+4.55*100.0/75*(i+16.5-36),100),B,rgb2);
+    strip.setPixelColor(i, rgb[0]+rgb2[0], rgb[1]+rgb2[1], rgb[2]+rgb2[2]);
+    strip.setPixelColor(136-(i-85), rgb[0]+rgb2[0], rgb[1]+rgb2[1], rgb[2]+rgb2[2]);
+  }
+
+  // Outer diamond
+  for(int i=189; i<216; i++) {
+    RainbowCycle(fmodf(P+100.0/27*(i-189),100),B,rgb);
+    RainbowCycle(fmodf(P2+2.5*100.0/27*(i-189),100),B,rgb2);
+    strip.setPixelColor(i, rgb[0]+rgb2[0], rgb[1]+rgb2[1], rgb[2]+rgb2[2]);
+    strip.setPixelColor(241-(i-189), rgb[0]+rgb2[0], rgb[1]+rgb2[1], rgb[2]+rgb2[2]);
+  }
+  strip.setPixelColor(241, 0, 0, 0);
+
+  // Middle diamond
+  for(int i=243; i<262; i++) {
+    RainbowCycle(fmodf(P+100.0/19*(i-243),100),B,rgb);
+    RainbowCycle(fmodf(P2+2.5*100.0/19*(i-243),100),B,rgb2);
+    strip.setPixelColor(i, rgb[0]+rgb2[0], rgb[1]+rgb2[1], rgb[2]+rgb2[2]);
+    strip.setPixelColor(279-(i-243), rgb[0]+rgb2[0], rgb[1]+rgb2[1], rgb[2]+rgb2[2]);
+  }
+  strip.setPixelColor(279, 0, 0, 0);
+
+  // Inner diamond
+  for(int i=281; i<292; i++) {
+    RainbowCycle(fmodf(P+100.0/11*(i-281),100),B,rgb);
+    RainbowCycle(fmodf(P2+2.5*100.0/11*(i-281),100),B,rgb2);
+    strip.setPixelColor(i, rgb[0]+rgb2[0], rgb[1]+rgb2[1], rgb[2]+rgb2[2]);
+    strip.setPixelColor(301-(i-281), rgb[0]+rgb2[0], rgb[1]+rgb2[1], rgb[2]+rgb2[2]);
   }
   strip.setPixelColor(301, 0, 0, 0);
 
