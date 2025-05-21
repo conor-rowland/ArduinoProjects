@@ -3,15 +3,10 @@
 #include <time.h>
 
 #define LED_PIN      4
-#define LED_COUNT    133//138
+#define LED_COUNT    132//126
 
-// Total = 133
-// Collar           7  //  0 to   6
-// V Hemline        8  //  7 to  14;  60 to  67; 109 to 116
-// Line to Shoulder 6  // 15 to  20;  29 to  34;
-// Shoulder         8  // 21 to  28
-// Diamond          9  // 35 to  43;  84 to  92
-// H Line           16 // 44 to  59;  68 to  83;  93 to 108; 117 to 132
+// Total = 132
+// 0-9, 10-34, 35-99, 100-125, 126-131
 
 Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_KHZ800 + NEO_GRB);
 
@@ -41,7 +36,8 @@ float et4 = 0.0;
 float et5 = 0.0;
 float et6 = 0.0;
 void loop() {
-  RainbowCycle(P, 0.15, 17);
+  // RainbowCycle(et1, 0.15, 17);
+  RainbowCycleSymmetric(et1, 0.15, 17);
   // RainbowCycle_Comet(P, 0.2, et, 5);
 
   // RedCycle(P, 0.1, 5);
@@ -268,13 +264,61 @@ void TriangleEnvelope(float *intensity, float ep, float et, float slope) {
 
 //----------Define Modes Below----------
 
-void RainbowCycle(float P, float B, int wait) {
+// 0-9, 10-34, 35-99, 100-125, 126-131
+
+void RainbowCycle(float etP, float B, int wait) {
   static int rgb[3];
 
-  for(int i=0; i<LED_COUNT; i++) {
-    RainbowCycle(fmodf(P+100.0/LED_COUNT*i,100),B,rgb);
+  for(int i=10; i<35; i++) {
+    float P = fmodf((i-10.0),25)*100/25.0;
+    RainbowCycle(fmodf(P+100*etP,100),B,rgb);
     strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
   }
+  for(int i=35; i<100; i++) {
+    float P = fmodf((i-35.0),65)*100/65.0;
+    RainbowCycle(fmodf(P+100*etP,100),B,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+  }
+  for(int i=100; i<126; i++) {
+    float P = fmodf((i-100.0),26)*100/26.0;
+    RainbowCycle(fmodf(P+100*etP,100),B,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+  }
+  for(int i=126; i<132; i++) {
+    strip.setPixelColor(i, 0, 0, 0);
+  }
+
+
+  strip.show();
+  delay(wait);
+}
+
+
+void RainbowCycleSymmetric(float etP, float B, int wait) {
+  static int rgb[3];
+
+  for(int i=10; i<23; i++) {
+    float P = fmodf((i-10.0),25)*100/25.0;
+    RainbowCycle(fmodf(P+100*etP,100),B,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(34-(i-10), rgb[0], rgb[1], rgb[2]);
+  }
+  for(int i=35; i<68; i++) {
+    float P = fmodf((i-35.0),21.66666)*100/21.66666;
+    RainbowCycle(fmodf(P+5+100*etP,100),B,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(99-(i-35), rgb[0], rgb[1], rgb[2]);
+  }
+  for(int i=100; i<114; i++) {
+    float P = fmodf((i-100.0),26)*100/26.0;
+    RainbowCycle(fmodf(P+5+100*etP,100),B,rgb);
+    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+    strip.setPixelColor(125-(i-100), rgb[0], rgb[1], rgb[2]);
+  }
+  for(int i=126; i<132; i++) {
+    strip.setPixelColor(i, 0, 0, 0);
+  }
+
 
   strip.show();
   delay(wait);

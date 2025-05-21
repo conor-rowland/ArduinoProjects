@@ -3,15 +3,11 @@
 #include <time.h>
 
 #define LED_PIN      4
-#define LED_COUNT    133//138
+#define LED_COUNT    73
 
-// Total = 133
-// Collar           7  //  0 to   6
-// V Hemline        8  //  7 to  14;  60 to  67; 109 to 116
-// Line to Shoulder 6  // 15 to  20;  29 to  34;
-// Shoulder         8  // 21 to  28
-// Diamond          9  // 35 to  43;  84 to  92
-// H Line           16 // 44 to  59;  68 to  83;  93 to 108; 117 to 132
+// Total = 73
+// Chain   41  ( 0-40)
+// Ball    32  (41-72)
 
 Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_KHZ800 + NEO_GRB);
 
@@ -41,16 +37,11 @@ float et4 = 0.0;
 float et5 = 0.0;
 float et6 = 0.0;
 void loop() {
-  RainbowCycle(P, 0.15, 17);
+  // RainbowCycle(P, 0.4, 17);
   // RainbowCycle_Comet(P, 0.2, et, 5);
 
-  // RedCycle(P, 0.1, 5);
-  // RedCycle_Comet(P, 0.1, et, 5);
-
-  // WashCycle(et1, et2, et3, et4, et5, et6, 0.1, 5);
-  // FireCycle(et1, et2, et3, et4, et5, et6, 0.05, 5);
-
-  // SolidRainbowCycle(P, 0.2, 50);
+  // WashCycle(et1, et2, et3, et4, et5, et6, 0.15, 5);
+  WaterCycle(et1, et2, et3, et4, et5, et6, 0.1, 5);
 
   randt = randt + ((rand() % 11)-5);
   if (randt > 100) {
@@ -122,42 +113,42 @@ void loop() {
   }
   
   // et1 = et1+0.013*(1.0+0.0*randt1/100.0);
-  et1 = et1+0.007*(0.5+1.0*randt1/100.0);
+  et1 = et1+0.007*(1.0+1.0*randt1/100.0);
   if (et1 > 0.99999999) {
     et1 = 0.0;
   } else if (et1 < 0.00000001) {
     et1 = 1.0;
   }
   // et2 = et2+0.007*(0.5+1.0*randt2/100.0);
-  et2 = et2-0.007*(0.5+1.0*randt2/100.0);
+  et2 = et2+0.007*(1.0+1.0*randt2/100.0);
   if (et2 > 0.99999999) {
     et2 = 0.0;
   } else if (et2 < 0.00000001) {
     et2 = 1.0;
   }
   // et3 = et3-0.013*(0.5+1.0*randt3/100.0);
-  et3 = et3+0.007*(0.5+1.0*randt3/100.0);
+  et3 = et3+0.007*(1.0+1.0*randt3/100.0);
   if (et3 > 0.99999999) {
     et3 = 0.0;
   } else if (et3 < 0.00000001) {
     et3 = 1.0;
   }
   // et4 = et4-0.013*(0.5+1.0*randt4/100.0);
-  et4 = et4-0.007*(0.5+1.0*randt4/100.0);
+  et4 = et4+0.007*(0.1+1.0*randt4/100.0);
   if (et4 > 0.99999999) {
     et4 = 0.0;
   } else if (et4 < 0.00000001) {
     et4 = 1.0;
   }
   // et5 = et5-0.013*(0.0+1.0*randt5/100.0);
-  et5 = et5+0.007*(0.5+1.0*randt5/100.0);
+  et5 = et5-0.011*(0.75+0.5*randt5/100.0);
   if (et5 > 0.99999999) {
     et5 = 0.0;
   } else if (et5 < 0.00000001) {
     et5 = 1.0;
   }
   // et6 = et6-0.013*(0.5+1.0*randt6/100.0);
-  et6 = et6-0.007*(0.5+1.0*randt6/100.0);
+  et6 = et6-0.011*(0.75+0.5*randt6/100.0);
   if (et6 > 0.99999999) {
     et6 = 0.0;
   } else if (et6 < 0.00000001) {
@@ -297,34 +288,83 @@ void RainbowCycle_Comet(float P, float B, float et, int wait) {
   delay(wait);
 }
 
-void RedCycle(float P, float B, int wait) {
-  static int rgb[3];
+// void ApplyEnvelopes() {
 
-  for(int i=0; i<LED_COUNT; i++) {
-    RedCycle(fmodf(P+100.0/LED_COUNT*i,100),B,rgb);
-    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+// }
+
+void WaterCycle(float etb1, float etb2, float etm1, float etm2, float etw1, float etw2, float B, int wait) {
+  int b1;
+  int b2;
+  int m1;
+  int m2;
+  int w1;
+  int w2;
+  float intensityb1 = 0.0; // modifier to the pixel brightness (0 to 1)
+  float intensityb2 = 0.0; // modifier to the pixel brightness (0 to 1)
+  float intensitym1 = 0.0; // modifier to the pixel brightness (0 to 1)
+  float intensitym2 = 0.0; // modifier to the pixel brightness (0 to 1)
+  float intensityw1 = 0.0; // modifier to the pixel brightness (0 to 1)
+  float intensityw2 = 0.0; // modifier to the pixel brightness (0 to 1)
+
+  for(int i=0; i<41; i++) {
+    float ep = fmodf(i,0.5*41)/(0.5*41);
+    TriangleEnvelope(&intensityb1,ep,etb1,2.0);
+    TriangleEnvelope(&intensityb2,ep,etb2,2.0);
+    TriangleEnvelope(&intensitym1,ep,etm1,5.0);
+    TriangleEnvelope(&intensitym2,ep,etm2,5.0);
+    TriangleEnvelope(&intensityw1,ep,etw1,11.0);
+    TriangleEnvelope(&intensityw2,ep,etw2,11.0);
+    b1 = 255 * B * intensityb1;
+    b2 = 255 * B * intensityb2;
+    m1 = 175 * B * intensitym1;
+    m2 = 175 * B * intensitym2;
+    w1 = 200 * B * intensityw1;
+    w2 = 200 * B * intensityw2;
+    strip.setPixelColor(i, m1+m2+w1+w2, w1+w2, b1+b2+m1+m2+w1+w2);
+    // strip.setPixelColor(i, 0, 0, b1);
   }
+
+  for(int i=41; i<73; i++) {
+    // float ep = fmodf(41-41,1.0*(73-41))/(1.0*73-41);
+    float ep = fmodf(i-41,5.0*(73-41))/(5.0*73-41);
+    TriangleEnvelope(&intensityb1,ep,etb1,2.0);
+    TriangleEnvelope(&intensityb2,ep,etb2,2.0);
+    TriangleEnvelope(&intensitym1,ep,etm1,5.0);
+    TriangleEnvelope(&intensitym2,ep,etm2,5.0);
+    TriangleEnvelope(&intensityw1,ep,etw1,11.0);
+    TriangleEnvelope(&intensityw2,ep,etw2,11.0);
+    b1 = 125 * B * intensityb1;
+    b2 = 125 * B * intensityb2;
+    m1 = 125 * B * intensitym1;
+    m2 = 125 * B * intensitym2;
+    w1 = 50 * B * intensityw1;
+    w2 = 50 * B * intensityw2;
+    strip.setPixelColor(i, m1+m2+w1+w2, w1+w2, b1+b2+m1+m2+w1+w2);
+    // strip.setPixelColor(i, 0, 0, b1);
+  }
+  // for(int i=41; i<73; i++) {
+  //   float ep = fmodf(41-41,1.0*(73-41))/(1.0*73-41);
+  //   TriangleEnvelope(&intensityb1,ep,etb1,2.0);
+  //   TriangleEnvelope(&intensityb2,ep,etb2,2.0);
+  //   TriangleEnvelope(&intensityc,ep,etc,7.0);
+  //   TriangleEnvelope(&intensitym,ep,etm,15.0);
+  //   TriangleEnvelope(&intensityw1,ep,etw1,7.0);
+  //   TriangleEnvelope(&intensityw2,ep,etw2,11.0);
+  //   b1 = 255 * B * intensityb1;
+  //   b2 = 255 * B * intensityb2;
+  //   c = 150 * B * intensityc;
+  //   m = 75 * B * intensitym;
+  //   w1 = 100 * B * intensityw1;
+  //   w2 = 100 * B * intensityw2;
+  //   strip.setPixelColor(i, m+w1+w2, c+w1+w2, b1+b2+c+m+w1+w2);
+  // }
 
   strip.show();
   delay(wait);
 }
 
-void RedCycle_Comet(float P, float B, float et, int wait) {
-  static int rgb[3];
-  float intensity = 0.0; // modifier to the pixel brightness (0 to 1)
-
-  for(int i=0; i<LED_COUNT; i++) {
-    float ep = fmodf(i,LED_COUNT/3.3)/(LED_COUNT/3.3);
-    CometEnvelope(&intensity,ep,et);
-    float eB = B*intensity;
-    RedCycle(fmodf(P+100.0/LED_COUNT*i,100),eB,rgb);
-    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
-  }
-
-  strip.show();
-  delay(wait);
-}
-
+// Chain   41  ( 0-40)
+// Ball    32  (41-72)
 void WashCycle(float etr, float etg, float etb, float etc, float etm, float ety, float B, int wait) {
   int r;
   int g;
@@ -333,88 +373,48 @@ void WashCycle(float etr, float etg, float etb, float etc, float etm, float ety,
   int m;
   int y;
   float intensityr = 0.0; // modifier to the pixel brightness (0 to 1)
-  float intensityg = 0.0; // modifier to the pixel brightness (0 to 1)
-  float intensityb = 0.0; // modifier to the pixel brightness (0 to 1)
-  float intensityc = 0.0; // modifier to the pixel brightness (0 to 1)
-  float intensitym = 0.0; // modifier to the pixel brightness (0 to 1)
-  float intensityy = 0.0; // modifier to the pixel brightness (0 to 1)
+  float intensityg = 0.0;
+  float intensityb = 0.0;
+  float intensityc = 0.0;
+  float intensitym = 0.0;
+  float intensityy = 0.0;
 
-  for(int i=0; i<LED_COUNT; i++) {
-    float ep = fmodf(i,0.9*LED_COUNT)/(0.9*LED_COUNT);
-    TriangleEnvelope(&intensityr,ep,etr,4.0);
-    TriangleEnvelope(&intensityg,ep,etg,4.0);
-    TriangleEnvelope(&intensityb,ep,etb,4.0);
-    TriangleEnvelope(&intensityc,ep,etc,11.0);
-    TriangleEnvelope(&intensitym,ep,etm,11.0);
-    TriangleEnvelope(&intensityy,ep,ety,11.0);
+  for(int i=0; i<41; i++) {
+    float ep = fmodf(i,0.5*41)/(0.5*41);
+    TriangleEnvelope(&intensityr,ep,etr,2.0);
+    TriangleEnvelope(&intensityg,ep,etg,2.0);
+    TriangleEnvelope(&intensityb,ep,etb,2.0);
+    TriangleEnvelope(&intensityc,ep,etc,2.0);
+    TriangleEnvelope(&intensitym,ep,etm,2.0);
+    TriangleEnvelope(&intensityy,ep,ety,2.0);
     r = 255 * B * intensityr;
     g = 255 * B * intensityg;
     b = 255 * B * intensityb;
     c = 125 * B * intensityc;
     m = 125 * B * intensitym;
     y = 125 * B * intensityy;
-    // r = 0;
-    // g = 0;
-    // b = 0;
-    // c = 0;
-    // m = 0;
-    // y = 0;
-    strip.setPixelColor(i, r+m+y, g+c+y, b+c+m);
+    // strip.setPixelColor(i, r+m+y, g+c+y, b+c+m);
+    // strip.setPixelColor(i, m, c, b+c+m);
+    strip.setPixelColor(i, 0, 0, b);
   }
 
-  strip.show();
-  delay(wait);
-}
-
-void FireCycle(float et_r1, float et_r2, float et_m1, float et_m2, float et_y1, float et_y2, float B, int wait) {
-  int r1;
-  int r2;
-  int m1r;
-  int m1b;
-  int m2r;
-  int m2b;
-  int y1r;
-  int y1g;
-  int y2r;
-  int y2g;
-  float intensity_r1 = 0.0; // modifier to the pixel brightness (0 to 1)
-  float intensity_r2 = 0.0; // modifier to the pixel brightness (0 to 1)
-  float intensity_m1 = 0.0; // modifier to the pixel brightness (0 to 1)
-  float intensity_m2 = 0.0; // modifier to the pixel brightness (0 to 1)
-  float intensity_y1 = 0.0; // modifier to the pixel brightness (0 to 1)
-  float intensity_y2 = 0.0; // modifier to the pixel brightness (0 to 1)
-
-  for(int i=0; i<LED_COUNT; i++) {
-    float ep = fmodf(i,1.0*LED_COUNT)/(1.0*LED_COUNT);
-    TriangleEnvelope(&intensity_r1, ep, et_r1, 2.0);
-    TriangleEnvelope(&intensity_r2, ep, et_r2, 2.0);
-    TriangleEnvelope(&intensity_m1, ep, et_m1, 11.0);
-    TriangleEnvelope(&intensity_m2, ep, et_m2, 11.0);
-    TriangleEnvelope(&intensity_y1, ep, et_y1, 5.0);
-    TriangleEnvelope(&intensity_y2, ep, et_y2, 5.0);
-    r1 = 255 * B * intensity_r1;
-    r2 = 255 * B * intensity_r2;
-    m1r = 125 * B * intensity_m1;
-    m1b = 75 * B * intensity_m1;
-    m2r = 125 * B * intensity_m2;
-    m2b = 75 * B * intensity_m2;
-    y1r = 125 * B * intensity_y1;
-    y1g = 75 * B * intensity_y1;
-    y2r = 125 * B * intensity_y2;
-    y2g = 75 * B * intensity_y2;
-    strip.setPixelColor(i, r1+r2+m1r+m2r+y1r+y2r, y1g+y2g, m1b+m2b);
-  }
-
-  strip.show();
-  delay(wait);
-}
-
-void SolidRainbowCycle(float P, float B, int wait) {
-  static int rgb[3];
-  RainbowCycle(P,B,rgb);
-
-  for(int i=0; i<LED_COUNT; i++) {
-    strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+  for(int i=41; i<73; i++) {
+    float ep = fmodf(i-41,1.0*(73-41))/(1.0*73-41);
+    TriangleEnvelope(&intensityr,ep,etr,2.0);
+    TriangleEnvelope(&intensityg,ep,etg,2.0);
+    TriangleEnvelope(&intensityb,ep,etb,2.0);
+    TriangleEnvelope(&intensityc,ep,etc,2.0);
+    TriangleEnvelope(&intensitym,ep,etm,2.0);
+    TriangleEnvelope(&intensityy,ep,ety,2.0);
+    r = 255 * B * intensityr;
+    g = 255 * B * intensityg;
+    b = 255 * B * intensityb;
+    c = 125 * B * intensityc;
+    m = 125 * B * intensitym;
+    y = 125 * B * intensityy;
+    // strip.setPixelColor(i, r+m+y, g+c+y, b+c+m);
+    // strip.setPixelColor(i, m, c, b+c+m);
+    strip.setPixelColor(i, 0, 0, b);
   }
 
   strip.show();
