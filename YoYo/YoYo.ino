@@ -37,8 +37,8 @@ float et4 = 0.0;
 float et5 = 0.0;
 float et6 = 0.0;
 void loop() {
-  // RainbowCycle(P, 0.1, 17);
-  RainbowCycle_Comet(P, 0.1, et, 5);
+  RainbowCycle(P, 0.1, 17);
+  // RainbowCycle_Comet(P, 0.1, et, 5);
 
   // WashCycle(et1, et2, et3, et4, et5, et6, 0.15, 5);
   // WaterCycle(et1, et2, et3, et4, et5, et6, 0.15, 5);
